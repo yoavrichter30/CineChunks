@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CineChunks</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+    <main class="center">
+        <div class="container">
+            <header>
+                <h1>CineChunks</h1>
+                <p class="tagline">Plan your watch sessions with style</p>
+            </header>
+
+            <form class="card" method="post" action="/submit">
+                <div class="field">
+                    <label for="movie_name">Movie name</label>
+                    <input id="movie_name" name="movie_name" type="text" placeholder="e.g., The Matrix" required />
+                </div>
+
+                <div class="tabs">
+                    <input type="radio" name="mode_tab" id="tab-episodes" class="tab-radio" checked>
+                    <input type="radio" name="mode_tab" id="tab-length" class="tab-radio">
+
+                    <div class="tab-headers">
+                        <label class="tab" for="tab-episodes">By number of episodes</label>
+                        <span class="or-chip" aria-hidden="true">OR</span>
+                        <label class="tab" for="tab-length">By length per episode</label>
+                    </div>
+
+                    <div class="tab-panels">
+                        <div class="tab-panel panel-episodes">
+                            <div class="field">
+                                <label for="episodes">Number of episodes</label>
+                                <input id="episodes" name="episodes" type="number" min="1" step="1" placeholder="8" />
+                            </div>
+                        </div>
+                        <div class="tab-panel panel-length">
+                            <div class="field">
+                                <label for="episode_length">Length per episode (min)</label>
+                                <input id="episode_length" name="episode_length" type="number" min="1" step="1" placeholder="45" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="primary" type="submit">Submit</button>
+            </form>
+
+            {% if result %}
+            <div class="card result">
+                {% if result.error %}
+                <div class="error">{{ result.error }}</div>
+                {% else %}
+                <div class="movie-head">
+                    <div class="movie-title">{{ result.movie.title }} <span class="year">({{ result.movie.year }})</span></div>
+                    <div class="runtime">Runtime: {{ result.movie.runtime }}</div>
+                </div>
+                <p class="synopsis">{{ result.movie.original_synopsis }}</p>
+                <div class="episodes">
+                    {% for ep in result.episodes %}
+                    <div class="episode">
+                        <div class="episode-head">
+                            <span class="ep-num">Ep {{ ep.episode_number }}</span>
+                            <span class="ep-title">{{ ep.title }}</span>
+                            <span class="ep-time">{{ ep.start_time }} - {{ ep.end_time }}</span>
+                        </div>
+                        <p class="ep-synopsis">{{ ep.synopsis }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>
+
+
