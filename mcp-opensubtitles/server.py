@@ -1,10 +1,15 @@
 import os
 import gzip
 import io
+import logging
 from typing import Optional
 
 import httpx
 from fastmcp import FastMCP
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 OPEN_SUBTITLES_BASE_URL = "https://api.opensubtitles.com/api/v1"
@@ -82,6 +87,8 @@ async def download_subtitles(movie_name: str, language: str = "en") -> str:
 	- movie_name: Title to search.
 	- language: ISO 639-1 code, default "en".
 	"""
+	logger.info(f"Starting subtitle download for movie: '{movie_name}' in language: '{language}'")
+	
 	query_params = {
 		"query": movie_name,
 		"languages": language,
@@ -91,15 +98,22 @@ async def download_subtitles(movie_name: str, language: str = "en") -> str:
 		"ai_translated": "exclude",
 		"hearing_impaired": "exclude",
 	}
+	
 	async with httpx.AsyncClient(follow_redirects=True) as client:
+		logger.info(f"Searching for subtitles with params: {query_params}")
 		resp = await _http_get(client, "/subtitles", params=query_params)
 		data = resp.json()
 		items = data.get("data", [])
+		
+		logger.info(f"Found {len(items)} subtitle results")
 		if not items:
+			logger.warning(f"No subtitles found for '{movie_name}' in '{language}'")
 			return f"No subtitles found for '{movie_name}' in '{language}'."
 
 		# Pick the first subtitle entry
 		sub = items[0]
+		logger.info(f"Selected subtitle: {sub.get('attributes', {}).get('title', 'Unknown title')}")
+		
 		file_id = None
 		# New API often provides a list of files under attributes.files
 		attributes = sub.get("attributes", {})
@@ -110,56 +124,42 @@ async def download_subtitles(movie_name: str, language: str = "en") -> str:
 			# fallback to id
 			file_id = sub.get("id")
 		if not file_id:
+			logger.error("Subtitle file id not found in API response")
 			return "Subtitle file id not found in API response."
 
+		logger.info(f"Requesting download link for file_id: {file_id}")
 		# Request a temporary download link (requires Api-Key and Authorization)
 		await _ensure_auth_token(client)
 		dl_resp = await _http_post(client, "/download", json={"file_id": file_id}, include_auth=True)
 		dl_info = dl_resp.json()
 		dl_link = dl_info.get("link")
 		if not dl_link:
+			logger.error("Failed to obtain download link for subtitles")
 			return "Failed to obtain download link for subtitles."
 
+		logger.info(f"Downloading subtitle file from: {dl_link}")
 		file_resp = await client.get(dl_link, timeout=60)
 		file_resp.raise_for_status()
 		# httpx automatically decompresses gzip/deflate; handle plain .srt as-is
 		payload = file_resp.content
+		
+		logger.info(f"Downloaded {len(payload)} bytes of subtitle data")
 
 		# Try decode as utf-8 with fallback
 		try:
-			return payload.decode("utf-8")
+			decoded_content = payload.decode("utf-8")
+			logger.info("Successfully decoded subtitle content as UTF-8")
+			return decoded_content
 		except UnicodeDecodeError:
 			try:
-				return payload.decode("iso-8859-1")
-			except Exception:
+				decoded_content = payload.decode("iso-8859-1")
+				logger.info("Successfully decoded subtitle content as ISO-8859-1")
+				return decoded_content
+			except Exception as e:
+				logger.warning(f"Failed to decode subtitle content, using error='ignore': {e}")
 				return payload.decode(errors="ignore")
 
 
-@mcp.tool()
-async def verify_movie(name: str) -> bool:
-	"""
-	Given a name, verify whether it is a movie using OpenSubtitles features API.
-	Returns True if at least one matching feature has type == 'movie'.
-	"""
-	params = {
-		"query": name,
-		"type": "movie",
-		"page": 1,
-		"per_page": 1,
-	}
-	async with httpx.AsyncClient(follow_redirects=True) as client:
-		resp = await _http_get(client, "/features", params=params)
-		print(resp.text)
-		data = resp.json()
-		items = data.get("data", [])
-		if not items:
-			return False
-		for item in items:
-			attributes = item.get("attributes", {})
-			feature_type = (attributes.get("feature_type") or item.get("type") or "").lower()
-			if feature_type == "movie":
-				return True
-		return False
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@
                 <p class="tagline">Plan your watch sessions with style</p>
             </header>
 
-            <form class="card" method="post" action="/submit">
+            <form class="card" method="post" action="/submit" id="movie-form">
                 <div class="field">
                     <label for="movie_name">Movie name</label>
                     <input id="movie_name" name="movie_name" type="text" placeholder="e.g., The Matrix" required />
@@ -46,28 +46,34 @@
                     </div>
                 </div>
 
-                <button class="primary" type="submit">Submit</button>
+                <button class="primary" type="submit" id="submit-btn">
+                    <span class="btn-text">Submit</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span>
+                        Processing...
+                    </span>
+                </button>
             </form>
 
             {% if result %}
             <div class="card result">
-                {% if result.error %}
-                <div class="error">{{ result.error }}</div>
+                {% if result['error'] %}
+                <div class="error">{{ result['error'] }}</div>
                 {% else %}
                 <div class="movie-head">
-                    <div class="movie-title">{{ result.movie.title }} <span class="year">({{ result.movie.year }})</span></div>
-                    <div class="runtime">Runtime: {{ result.movie.runtime }}</div>
+                    <div class="movie-title">{{ result['movie']['title'] }}</div>
+                    <div class="runtime">Runtime: {{ result['movie']['runtime'] }}</div>
                 </div>
-                <p class="synopsis">{{ result.movie.original_synopsis }}</p>
+                <p class="synopsis">{{ result['movie']['original_synopsis'] }}</p>
                 <div class="episodes">
-                    {% for ep in result.episodes %}
+                    {% for ep in result['episodes'] %}
                     <div class="episode">
                         <div class="episode-head">
-                            <span class="ep-num">Ep {{ ep.episode_number }}</span>
-                            <span class="ep-title">{{ ep.title }}</span>
-                            <span class="ep-time">{{ ep.start_time }} - {{ ep.end_time }}</span>
+                            <span class="ep-num">Ep {{ ep['episode_number'] }}</span>
+                            <span class="ep-title">{{ ep['title'] }}</span>
+                            <span class="ep-time">{{ ep['start_time'] }} - {{ ep['end_time'] }}</span>
                         </div>
-                        <p class="ep-synopsis">{{ ep.synopsis }}</p>
+                        <p class="ep-synopsis">{{ ep['synopsis'] }}</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -76,6 +82,19 @@
             {% endif %}
         </div>
     </main>
+
+    <script>
+        document.getElementById('movie-form').addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoading = submitBtn.querySelector('.btn-loading');
+            
+            // Show loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+            submitBtn.disabled = true;
+        });
+    </script>
 </body>
 </html>
 
