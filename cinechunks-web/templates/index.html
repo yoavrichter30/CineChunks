@@ -4,14 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CineChunks</title>
+    <link rel="icon" type="image/png" href="/static/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
     <main class="center">
         <div class="container">
             <header>
-                <h1>CineChunks</h1>
-                <p class="tagline">Plan your watch sessions with style</p>
+                <div class="logo-container">
+                    <img src="/static/logo.png" alt="CineChunks Logo" class="logo" />
+                </div>
             </header>
 
             <form class="card" method="post" action="/submit" id="movie-form">
@@ -64,7 +69,6 @@
                     <div class="movie-title">{{ result['movie']['title'] }}</div>
                     <div class="runtime">Runtime: {{ result['movie']['runtime'] }}</div>
                 </div>
-                <p class="synopsis">{{ result['movie']['original_synopsis'] }}</p>
                 <div class="episodes">
                     {% for ep in result['episodes'] %}
                     <div class="episode">

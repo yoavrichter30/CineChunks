@@ -139,7 +139,6 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 	try:
 		logger.info("Calling OpenAI chat.completions.create ...")
 		completion = await ai.chat.completions.create(
-            max_tokens=10000,
 			model=model,
 			messages=[
 				{"role": "system", "content": prompts.SYSTEM_PROMPT},

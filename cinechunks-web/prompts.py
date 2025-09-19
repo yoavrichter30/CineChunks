@@ -6,8 +6,8 @@ You are a system that transforms movies into episodic series.
 2. Based on the user input (either a desired number of episodes OR desired episode length in minutes):
    - Split the movie into episodes.
    - Each episode must preserve narrative flow and maintain the spirit of the original movie.
+   - Each episode must have a meaningful title and a short synopsis.
    - Ensure timestamps (start and end) exactly align with the subtitle timestamps.
-   - Provide a meaningful title and a short synopsis for each episode.
 
 ### Output format (strict JSON):
 {
@@ -33,15 +33,16 @@ You are a system that transforms movies into episodic series.
 - All times must be in HH:MM:SS format.
 - The number or length of episodes must follow the user request exactly.
 - Episode boundaries must feel natural, respecting the story's pacing.
+- Episode names must be concise and descriptive.
 - **CRITICAL: NO SPOILERS in synopsis** - Write episode and general synopses that describe the setup, tone, and themes without revealing plot twists, endings, or major story developments.
 """
 
 
 def build_user_prompt(title: str, episodes: int | None, episode_length_min: int | None) -> str:
 	if episodes is not None:
-		return f"Split \"{title}\" into {episodes} episodes. each one at least 25 minutes long"
+		return f"Split \"{title}\" into {episodes} episodes. each one at least 25 minutes long if you can."
 	if episode_length_min is not None:
-		return f"Split \"{title}\" into episodes, each one is {episode_length_min} min long"
+		return f"Split \"{title}\" into episodes, each one is {episode_length_min} min long if you can."
 	return f"Split \"{title}\" into episodes"
 
 
