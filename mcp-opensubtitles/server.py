@@ -1,6 +1,4 @@
 import os
-import gzip
-import io
 import logging
 from typing import Optional
 
@@ -32,15 +30,6 @@ def _build_headers(include_auth: bool = False) -> dict:
 	if include_auth and AUTH_TOKEN:
 		headers["Authorization"] = f"Bearer {AUTH_TOKEN}"
 	return headers
-
-
-def _gunzip_if_needed(content: bytes, headers: httpx.Headers) -> bytes:
-	encoding = headers.get("Content-Encoding", "").lower()
-	if "gzip" in encoding and content:
-		with gzip.GzipFile(fileobj=io.BytesIO(content)) as gz:
-			return gz.read()
-	return content
-
 
 mcp = FastMCP("OpenSubtitles MCP Server")
 
@@ -127,7 +116,7 @@ async def download_subtitles(movie_name: str, language: str = "en") -> str:
 			logger.error("Subtitle file id not found in API response")
 			return "Subtitle file id not found in API response."
 
-		logger.info(f"Requesting download link for file_id: {file_id}")
+		logger.info(f"Requesting download link for file")
 		# Request a temporary download link (requires Api-Key and Authorization)
 		await _ensure_auth_token(client)
 		dl_resp = await _http_post(client, "/download", json={"file_id": file_id}, include_auth=True)
@@ -158,9 +147,6 @@ async def download_subtitles(movie_name: str, language: str = "en") -> str:
 			except Exception as e:
 				logger.warning(f"Failed to decode subtitle content, using error='ignore': {e}")
 				return payload.decode(errors="ignore")
-
-
-
 
 if __name__ == "__main__":
 	try:
