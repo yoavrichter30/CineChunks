@@ -42,7 +42,7 @@ def build_user_prompt(title: str, episodes: int | None, episode_length_min: int 
 	if episodes is not None:
 		return f"Split \"{title}\" into {episodes} episodes. each one at least 25 minutes long if you can."
 	if episode_length_min is not None:
-		return f"Split \"{title}\" into episodes, each one is {episode_length_min} min long if you can."
+		return f"Split \"{title}\" into episodes, each is {episode_length_min} min long if you can."
 	return f"Split \"{title}\" into episodes"
 
 
