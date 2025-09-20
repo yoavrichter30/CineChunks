@@ -8,7 +8,6 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional, Any, Dict
 import prompts as prompts
 
-
 try:
 	from dotenv import load_dotenv
 	load_dotenv()
@@ -100,9 +99,9 @@ async def submit(
             ep_len_val = None
 
     user_query = prompts.build_user_prompt(movie_name, ep_val, ep_len_val)
-    logger.info(f"Built user_query='{user_query}'")
+    logger.debug(f"Built user_query='{user_query}'")
     result = await ask_chatgpt_via_mcp(user_query)
-    logger.info(f"ask_chatgpt_via_mcp returned type={type(result).__name__}")
+    logger.debug(f"ask_chatgpt_via_mcp returned type={type(result).__name__}")
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "result": result, "movie_name": movie_name},
@@ -137,7 +136,7 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 
 	ai = AsyncOpenAI(api_key=openai_key)
 	try:
-		logger.info("Calling OpenAI chat.completions.create ...")
+		logger.debug("Calling OpenAI chat.completions.create ...")
 		completion = await ai.chat.completions.create(
 			model=model,
 			messages=[
@@ -151,12 +150,12 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 		content = (message.content or "").strip()
 		tool_calls = getattr(message, 'tool_calls', None)
 		
-		logger.info(f"OpenAI response length={len(content)} chars")
+		logger.debug(f"OpenAI response length={len(content)} chars")
 		logger.info(f"Tool calls: {len(tool_calls) if tool_calls else 0}")
 		
 		# If there are tool calls, execute them and get the final response
 		if tool_calls:
-			logger.info("Model is calling tools, executing them...")
+			logger.debug("Model is calling tools, executing them...")
 			
 			# Add the assistant's message with tool calls to the conversation
 			messages = [
@@ -171,7 +170,7 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 				tool_args = json.loads(tool_call.function.arguments)
 				tool_call_id = tool_call.id
 				
-				logger.info(f"Executing tool: {tool_name} with args: {tool_args}")
+				logger.debug(f"Executing tool: {tool_name} with args: {tool_args}")
 				
 				try:
 					# Get the MCP client and execute the tool
@@ -187,7 +186,7 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 						"content": str(result)
 					})
 					
-					logger.info(f"Tool {tool_name} result: {str(result)[:100]}...")
+					logger.debug(f"Tool {tool_name} result: {str(result)[:100]}...")
 					
 				except Exception as e:
 					logger.error(f"Error executing tool {tool_name}: {e}")
@@ -206,15 +205,15 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 			)
 			
 			final_content = (final_completion.choices[0].message.content or "").strip()
-			logger.info(f"Final response length={len(final_content)} chars")
+			logger.debug(f"Final response length={len(final_content)} chars")
 			
 			try:
 				parsed_json = json.loads(final_content)
-				logger.info("Successfully parsed final JSON response")
+				logger.debug("Successfully parsed final JSON response")
 				return parsed_json
 			except Exception as e:
 				logger.warning(f"Final response was not valid JSON: {e}")
-				logger.info(f"Raw final content: {repr(final_content)}")
+				logger.debug(f"Raw final content: {repr(final_content)}")
 				return {"raw": final_content}
 		
 		# If no tool calls, try to parse as JSON directly
@@ -229,7 +228,7 @@ async def ask_chatgpt_via_mcp(user_query: str) -> Optional[Dict[str, Any]]:
 			return parsed_json
 		except Exception as e:
 			logger.warning(f"Response was not valid JSON: {e}")
-			logger.info(f"Raw content: {repr(content)}")
+			logger.debug(f"Raw content: {repr(content)}")
 			return {"raw": content}
 	except Exception as e:
 		error_msg = str(e).lower()
