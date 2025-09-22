@@ -6,16 +6,16 @@ Transform any movie into an episodic series! CineChunks uses AI and real subtitl
 
 ```mermaid
 graph TD
-    A[User] --> B[APP<br/>FastAPI Web Interface]
+    A[User] --> B[APP<br/>FastAPI + MCP Client]
     B --> C[ChatGPT API<br/>GPT-4 with MCP Tools]
-    C --> D[MCP Server<br/>OpenSubtitles Integration]
-    D --> C
     C --> B
+    B --> D[MCP Server<br/>OpenSubtitles Integration]
+    D --> B
     B --> A
     
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style D fill:#e8f5e8
+    style B fill:#f8f9fa
+    style C fill:#f1f3f4
+    style D fill:#e8f4f8
 ```
 
 The project consists of two main components:
