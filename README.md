@@ -12,10 +12,6 @@ graph TD
     B --> D[MCP Server<br/>OpenSubtitles Integration]
     D --> B
     B --> A
-    
-    style B fill:#f8f9fa
-    style C fill:#f1f3f4
-    style D fill:#e8f4f8
 ```
 
 The project consists of two main components:
